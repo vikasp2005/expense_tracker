@@ -2,14 +2,28 @@
   "name": "expence_tracker",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "concurrently \"gnome-terminal -- npm run frontend\"  \"gnome-terminal -- npm run backend\" ",
+    "frontend": "cd frontend && npm start",
+    "backend": "cd backend && nodemon server.js",
+    "dev": "concurrently \"npm run dev-frontend\" && \"npm run dev-backend\" ",
+    "dev-frontend": "cd frontend && nodemon server.js",
+    "dev-backend": "cd backend && npm start"
   },
   "keywords": [],
   "author": "",
+  "type": "module",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.1"
+    "concurrently": "^9.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "expence_tracker": "file:",
+    "express": "^4.21.1",
+    "express-validator": "^7.2.0",
+    "mongoose": "^8.7.1",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.7"
   }
 }

@@ -1,25 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import AddExpenseOrEarning from './components/AddExpense';
+import ExpenseTable from './components/ExpenseTable';
+import EditExpense from './components/EditExpense';
+import Navbar from './components/Navbar';
+import './styles.css';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Navbar />
+      <div className="container">
+        <Routes>
+          <Route path="/add" element={<AddExpenseOrEarning />} />
+          <Route path="/view-expenses" element={<ExpenseTable />} />
+          <Route path="/edit-expense/:id" element={<EditExpense />} />
+          <Route path="/" element={<AddExpenseOrEarning />} />
+        </Routes>
+      </div>
+    </Router>
   );
-}
+};
 
 export default App;
