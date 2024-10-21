@@ -3,8 +3,8 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api/exp';
 
 // Get all expenses
-export const fetchExpenses = async () => {
-    const response = await axios.post(`${API_URL}/disp_exp`);
+export const fetchExpenses = async (expense) => {
+    const response = await axios.post(`${API_URL}/disp_exp`,expense);
     return response.data;
   };
   

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { fetchExpenses, deleteExpense } from '../api';
 import { useNavigate } from 'react-router-dom';
 import '../styles.css';
@@ -17,49 +17,70 @@ const ExpenseTable = () => {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
   const [error, setError] = useState('');
-  const [deletePopup, setDeletePopup] = useState(false); // Popup for delete confirmation
-  const [confirmDeletePopup, setConfirmDeletePopup] = useState(false); // Popup after successful delete
-  const [expenseToDelete, setExpenseToDelete] = useState(null); // Track which expense to delete
+  const [deletePopup, setDeletePopup] = useState(false);
+  const [confirmDeletePopup, setConfirmDeletePopup] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
+
+  // Filter states
+  const [typeFilter, setTypeFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [minAmount, setMinAmount] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [period, setPeriod] = useState('All'); // New state for period selection
+
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const getExpenses = async () => {
-      try {
-        const response = await fetchExpenses();
-        setExpenses(response.expenses);
+  // Function to calculate start and end dates based on the period
+  const calculatePeriodDates = (selectedPeriod) => {
+    const currentDate = new Date();
+    let start = '';
+    let end = formatDate(currentDate); // End date is today by default
 
-        // Calculate totals
-        let totalExp = 0;
-        let totalEarn = 0;
-        response.expenses.forEach(expense => {
-          if (expense.type === 'Expense') {
-            totalExp += expense.amount;
-          } else if (expense.type === 'Earning') {
-            totalEarn += expense.amount;
-          }
-        });
+    switch (selectedPeriod) {
+      case 'Last week':
+        start = formatDate(new Date(currentDate.setDate(currentDate.getDate() - 7)));
+        break;
+      case 'Last month':
+        start = formatDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)));
+        break;
+      case 'Last 2 months':
+        start = formatDate(new Date(currentDate.setMonth(currentDate.getMonth() - 2)));
+        break;
+      case 'Last 6 months':
+        start = formatDate(new Date(currentDate.setMonth(currentDate.getMonth() - 6)));
+        break;
+      case 'Last year':
+        start = formatDate(new Date(currentDate.setFullYear(currentDate.getFullYear() - 1)));
+        break;
+      default:
+        start = '';
+        end = '';
+        break;
+    }
 
-        setTotalExpenses(totalExp);
-        setTotalEarnings(totalEarn);
-        setTotalSavings(totalEarn - totalExp);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load expenses');
-      }
-    };
-    getExpenses();
-  }, []); // Empty dependency array to fetch data on initial load
+    setStartDate(start);
+    setEndDate(end);
+  };
 
-  const handleDelete = async () => {
+  // Fetch expenses with filters (using useCallback)
+  const fetchFilteredExpenses = useCallback(async () => {
     try {
-      await deleteExpense(expenseToDelete._id);
-      setExpenses(expenses.filter(exp => exp._id !== expenseToDelete._id));
+      const response = await fetchExpenses({
+        type: typeFilter,
+        category: categoryFilter,
+        minAmount,
+        maxAmount,
+        startDate,
+        endDate
+      });
+      setExpenses(response.expenses);
 
-      // Update the totals after deletion
-      const updatedExpenses = expenses.filter(exp => exp._id !== expenseToDelete._id);
+      // Calculate totals
       let totalExp = 0;
       let totalEarn = 0;
-      updatedExpenses.forEach(expense => {
+      response.expenses.forEach(expense => {
         if (expense.type === 'Expense') {
           totalExp += expense.amount;
         } else if (expense.type === 'Earning') {
@@ -70,6 +91,28 @@ const ExpenseTable = () => {
       setTotalExpenses(totalExp);
       setTotalEarnings(totalEarn);
       setTotalSavings(totalEarn - totalExp);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load expenses');
+    }
+  }, [typeFilter, categoryFilter, minAmount, maxAmount, startDate, endDate]);
+
+  // When the period changes, calculate start and end dates
+  useEffect(() => {
+    if (period !== 'Custom') {
+      calculatePeriodDates(period); // Automatically calculate dates for selected period
+    }
+  }, [period]); // Triggered when the period changes
+
+  useEffect(() => {
+    fetchFilteredExpenses();
+  }, [fetchFilteredExpenses]);
+
+  const handleDelete = async () => {
+    try {
+      await deleteExpense(expenseToDelete._id);
+      setExpenses(expenses.filter(exp => exp._id !== expenseToDelete._id));
+      fetchFilteredExpenses(); // Refresh data after deletion
 
       setDeletePopup(false); // Close the confirmation popup
       setConfirmDeletePopup(true); // Show the "Deleted successfully" popup
@@ -79,17 +122,17 @@ const ExpenseTable = () => {
   };
 
   const confirmDelete = (expense) => {
-    setExpenseToDelete(expense); // Set the expense to delete
-    setDeletePopup(true); // Show delete confirmation popup
+    setExpenseToDelete(expense);
+    setDeletePopup(true);
   };
 
   const closeDeletePopup = () => {
-    setDeletePopup(false); // Close delete confirmation popup
+    setDeletePopup(false);
   };
 
   const closeConfirmDeletePopup = () => {
-    setConfirmDeletePopup(false); // Close success popup
-    setExpenseToDelete(null); // Clear the deleted expense details
+    setConfirmDeletePopup(false);
+    setExpenseToDelete(null);
   };
 
   const handleEdit = (id) => {
@@ -97,7 +140,7 @@ const ExpenseTable = () => {
   };
 
   return (
-    <div className={deletePopup}> {/* Add  to background */}
+    <div className={deletePopup}>
       <div className="card">
         <h2>Expense List</h2>
         {error && <p className="error-message">{error}</p>}
@@ -106,6 +149,63 @@ const ExpenseTable = () => {
           <p className="total-amount">Total Expenses: Rs.{totalExpenses}</p>
           <p className="total-earnings">Total Earnings: Rs.{totalEarnings}</p>
           <p className="total-savings">Total Savings: Rs.{totalSavings}</p>
+        </div>
+
+        {/* Filters */}
+        <div className="filters">
+          <select value={period} onChange={(e) => setPeriod(e.target.value)}>
+            <option value="All">All</option>
+            <option value="Last week">Last week</option>
+            <option value="Last month">Last month</option>
+            <option value="Last 2 months">Last 2 months</option>
+            <option value="Last 6 months">Last 6 months</option>
+            <option value="Last year">Last year</option>
+            <option value="Custom">Custom</option>
+          </select>
+
+          {period === 'Custom' && (
+            <>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </>
+          )}
+
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+            <option value="">All Types</option>
+            <option value="Expense">Expense</option>
+            <option value="Earning">Earning</option>
+          </select>
+
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+            <option value="">All Categories</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Health">Health</option>
+            <option value="Other">Other</option>
+            <option value="Salary">Salary</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Min Amount"
+            value={minAmount}
+            onChange={(e) => setMinAmount(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Max Amount"
+            value={maxAmount}
+            onChange={(e) => setMaxAmount(e.target.value)}
+          />
         </div>
 
         <table className="table">
@@ -141,7 +241,7 @@ const ExpenseTable = () => {
                     </button>
                     <button
                       className="delete-btn"
-                      onClick={() => confirmDelete(expense)} // Pass full expense details to delete confirmation
+                      onClick={() => confirmDelete(expense)}
                     >
                       Delete
                     </button>
@@ -157,7 +257,6 @@ const ExpenseTable = () => {
         </table>
       </div>
 
-      {/* Delete confirmation popup */}
       {deletePopup && expenseToDelete && (
         <div className="popup">
           <div className="popup-content">
@@ -165,14 +264,13 @@ const ExpenseTable = () => {
             <p><strong>Amount:</strong> Rs.{expenseToDelete.amount}</p>
             <p><strong>Type:</strong> {expenseToDelete.type}</p>
             <p><strong>Category:</strong> {expenseToDelete.category}</p>
-            <p><strong>Description:</strong> {expenseToDelete.desc? expenseToDelete.desc : "NULL"}</p>
+            <p><strong>Description:</strong> {expenseToDelete.desc || "NULL"}</p>
             <button className="confirm-btn" onClick={handleDelete}>Yes</button>
             <button className="cancel-btn" onClick={closeDeletePopup}>No</button>
           </div>
         </div>
       )}
 
-      {/* Success confirmation popup */}
       {confirmDeletePopup && (
         <div className="popup">
           <div className="popup-content">
