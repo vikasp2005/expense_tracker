@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { fetchExpenses, deleteExpense } from '../api';
 import { useNavigate } from 'react-router-dom';
+import { MdDelete } from "react-icons/md";
+import { FiEdit } from "react-icons/fi";
 import '../styles.css';
 
 const formatDate = (dateString) => {
@@ -233,18 +235,16 @@ const ExpenseTable = () => {
                   <td>{formatDate(expense.added_on)}</td>
                   <td>{formatDate(expense.last_modified_at)}</td>
                   <td>
-                    <button
-                      className="edit-btn"
+                    <FiEdit
+                      className = "btn2"
                       onClick={() => handleEdit(expense._id)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="delete-btn"
+                    />
+                      
+                    <MdDelete 
+                      className = "btn2"
                       onClick={() => confirmDelete(expense)}
-                    >
-                      Delete
-                    </button>
+                      />
+                      
                   </td>
                 </tr>
               ))
