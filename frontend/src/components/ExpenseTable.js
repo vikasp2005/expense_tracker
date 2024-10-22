@@ -3,8 +3,6 @@ import { fetchExpenses, deleteExpense } from '../api';
 import { useNavigate } from 'react-router-dom';
 import { MdDelete } from "react-icons/md";
 import { FiEdit } from "react-icons/fi";
-import { Bar, Pie } from 'react-chartjs-2';
-import 'chart.js/auto'; // Import chart.js for graph functionality
 import '../styles.css'; // Import the CSS file
 
 const formatDate = (dateString) => {
@@ -20,7 +18,6 @@ const ExpenseTable = () => {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
-  const [categoryTotals, setCategoryTotals] = useState({});
   const [error, setError] = useState('');
   const [deletePopup, setDeletePopup] = useState(false);
   const [confirmDeletePopup, setConfirmDeletePopup] = useState(false);
@@ -96,7 +93,6 @@ const ExpenseTable = () => {
       setTotalExpenses(totalExp);
       setTotalEarnings(totalEarn);
       setTotalSavings(totalEarn - totalExp);
-      setCategoryTotals(categoryData);
     } catch (err) {
       console.error(err);
       setError('Failed to load expenses');
@@ -144,24 +140,7 @@ const ExpenseTable = () => {
     navigate(`/edit-expense/${id}`);
   };
 
-  // Data for bar chart (comparison between earnings, expenses, and savings)
-  const barChartData = {
-    labels: ['Earnings', 'Expenses', 'Savings'],
-    datasets: [{
-      label: 'Amount (Rs.)',
-      data: [totalEarnings, totalExpenses, totalSavings],
-      backgroundColor: ['#4caf50', '#f44336', '#2196f3']
-    }]
-  };
-
-  // Data for pie chart (expense categories)
-  const pieChartData = {
-    labels: Object.keys(categoryTotals),
-    datasets: [{
-      data: Object.values(categoryTotals),
-      backgroundColor: ['#f44336', '#ff9800', '#4caf50', '#2196f3', '#9c27b0', '#607d8b'],
-    }]
-  };
+ 
 
   return (
     <div>
@@ -307,6 +286,13 @@ const ExpenseTable = () => {
         </div>
       )}
 
+      {/* Graphs */}
+      <div className="graph-container">
+        <div className="chart">
+        
+        </div>
+        
+      </div>
       
     </div>
   );
