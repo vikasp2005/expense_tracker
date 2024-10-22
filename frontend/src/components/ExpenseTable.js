@@ -3,7 +3,9 @@ import { fetchExpenses, deleteExpense } from '../api';
 import { useNavigate } from 'react-router-dom';
 import { MdDelete } from "react-icons/md";
 import { FiEdit } from "react-icons/fi";
-import '../styles.css';
+import { Bar, Pie } from 'react-chartjs-2';
+import 'chart.js/auto'; // Import chart.js for graph functionality
+import '../styles.css'; // Import the CSS file
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -18,6 +20,7 @@ const ExpenseTable = () => {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
+  const [categoryTotals, setCategoryTotals] = useState({});
   const [error, setError] = useState('');
   const [deletePopup, setDeletePopup] = useState(false);
   const [confirmDeletePopup, setConfirmDeletePopup] = useState(false);
@@ -30,43 +33,41 @@ const ExpenseTable = () => {
   const [maxAmount, setMaxAmount] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [period, setPeriod] = useState('All'); // New state for period selection
+  const [period, setPeriod] = useState('All');
 
   const navigate = useNavigate();
 
-  // Function to calculate start and end dates based on the period
   const calculatePeriodDates = (selectedPeriod) => {
     const currentDate = new Date();
     let start = '';
-    let end = formatDate(currentDate); // End date is today by default
+    let end = new Date();
 
     switch (selectedPeriod) {
       case 'Last week':
-        start = formatDate(new Date(currentDate.setDate(currentDate.getDate() - 7)));
+        start = new Date(currentDate.setDate(currentDate.getDate() - 7));
         break;
       case 'Last month':
-        start = formatDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)));
+        start = new Date(currentDate.setMonth(currentDate.getMonth() - 1));
         break;
       case 'Last 2 months':
-        start = formatDate(new Date(currentDate.setMonth(currentDate.getMonth() - 2)));
+        start = new Date(currentDate.setMonth(currentDate.getMonth() - 2));
         break;
       case 'Last 6 months':
-        start = formatDate(new Date(currentDate.setMonth(currentDate.getMonth() - 6)));
+        start = new Date(currentDate.setMonth(currentDate.getMonth() - 6));
         break;
       case 'Last year':
-        start = formatDate(new Date(currentDate.setFullYear(currentDate.getFullYear() - 1)));
+        start = new Date(currentDate.setFullYear(currentDate.getFullYear() - 1));
         break;
       default:
         start = '';
         end = '';
         break;
     }
-
+    
     setStartDate(start);
     setEndDate(end);
   };
 
-  // Fetch expenses with filters (using useCallback)
   const fetchFilteredExpenses = useCallback(async () => {
     try {
       const response = await fetchExpenses({
@@ -79,12 +80,14 @@ const ExpenseTable = () => {
       });
       setExpenses(response.expenses);
 
-      // Calculate totals
       let totalExp = 0;
       let totalEarn = 0;
+      const categoryData = {};
+
       response.expenses.forEach(expense => {
         if (expense.type === 'Expense') {
           totalExp += expense.amount;
+          categoryData[expense.category] = (categoryData[expense.category] || 0) + expense.amount;
         } else if (expense.type === 'Earning') {
           totalEarn += expense.amount;
         }
@@ -93,18 +96,18 @@ const ExpenseTable = () => {
       setTotalExpenses(totalExp);
       setTotalEarnings(totalEarn);
       setTotalSavings(totalEarn - totalExp);
+      setCategoryTotals(categoryData);
     } catch (err) {
       console.error(err);
       setError('Failed to load expenses');
     }
-  }, [typeFilter, categoryFilter, minAmount, maxAmount, startDate, endDate]);
+  }, [typeFilter,  categoryFilter, minAmount, maxAmount, startDate, endDate]);
 
-  // When the period changes, calculate start and end dates
   useEffect(() => {
     if (period !== 'Custom') {
-      calculatePeriodDates(period); // Automatically calculate dates for selected period
+      calculatePeriodDates(period);
     }
-  }, [period]); // Triggered when the period changes
+  }, [period]);
 
   useEffect(() => {
     fetchFilteredExpenses();
@@ -114,10 +117,10 @@ const ExpenseTable = () => {
     try {
       await deleteExpense(expenseToDelete._id);
       setExpenses(expenses.filter(exp => exp._id !== expenseToDelete._id));
-      fetchFilteredExpenses(); // Refresh data after deletion
+      fetchFilteredExpenses();
 
-      setDeletePopup(false); // Close the confirmation popup
-      setConfirmDeletePopup(true); // Show the "Deleted successfully" popup
+      setDeletePopup(false);
+      setConfirmDeletePopup(true);
     } catch (err) {
       setError('Failed to delete expense');
     }
@@ -141,16 +144,41 @@ const ExpenseTable = () => {
     navigate(`/edit-expense/${id}`);
   };
 
+  // Data for bar chart (comparison between earnings, expenses, and savings)
+  const barChartData = {
+    labels: ['Earnings', 'Expenses', 'Savings'],
+    datasets: [{
+      label: 'Amount (Rs.)',
+      data: [totalEarnings, totalExpenses, totalSavings],
+      backgroundColor: ['#4caf50', '#f44336', '#2196f3']
+    }]
+  };
+
+  // Data for pie chart (expense categories)
+  const pieChartData = {
+    labels: Object.keys(categoryTotals),
+    datasets: [{
+      data: Object.values(categoryTotals),
+      backgroundColor: ['#f44336', '#ff9800', '#4caf50', '#2196f3', '#9c27b0', '#607d8b'],
+    }]
+  };
+
   return (
-    <div className={deletePopup}>
+    <div>
       <div className="card">
         <h2>Expense List</h2>
         {error && <p className="error-message">{error}</p>}
 
         <div className="totals">
-          <p className="total-amount">Total Expenses: Rs.{totalExpenses}</p>
-          <p className="total-earnings">Total Earnings: Rs.{totalEarnings}</p>
-          <p className="total-savings">Total Savings: Rs.{totalSavings}</p>
+          <div className="total-card">
+            <p>Total Earnings: Rs.{totalEarnings}</p>
+          </div>
+          <div className="total-card">
+            <p>Total Expenses: Rs.{totalExpenses}</p>
+          </div>
+          <div className="total-card">
+            <p>Total Savings: Rs.{totalSavings}</p>
+          </div>
         </div>
 
         {/* Filters */}
@@ -235,7 +263,7 @@ const ExpenseTable = () => {
                   <td>{formatDate(expense.added_on)}</td>
                   <td>{formatDate(expense.last_modified_at)}</td>
                   <td>
-                    <FiEdit
+                  <FiEdit
                       className = "btn2"
                       onClick={() => handleEdit(expense._id)}
                     />
@@ -244,7 +272,6 @@ const ExpenseTable = () => {
                       className = "btn2"
                       onClick={() => confirmDelete(expense)}
                       />
-                      
                   </td>
                 </tr>
               ))
@@ -256,7 +283,7 @@ const ExpenseTable = () => {
           </tbody>
         </table>
       </div>
-
+      
       {deletePopup && expenseToDelete && (
         <div className="popup">
           <div className="popup-content">
@@ -279,8 +306,12 @@ const ExpenseTable = () => {
           </div>
         </div>
       )}
+
+      
     </div>
   );
 };
 
 export default ExpenseTable;
+
+

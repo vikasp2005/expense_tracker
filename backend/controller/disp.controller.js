@@ -6,7 +6,7 @@ export const disp_Exp = async (req, res) => {
     const currentDate = new Date();
 
     // Optional filters passed through query parameters
-    const { category, minAmount, maxAmount, type, period, startDate, endDate } = req.body;
+    const { category, minAmount, maxAmount, type,  startDate, endDate } = req.body;
 
     // Determine the date range based on the provided period or custom dates
     let matchFilter = {};
@@ -18,40 +18,7 @@ export const disp_Exp = async (req, res) => {
         $gte: new Date(startDate).toISOString().split('T')[0],
         $lte: new Date(endDate).toISOString().split('T')[0],
       };
-    } else if (period) {
-      // Set date range based on the selected period
-      const getStartDateForPeriod = (period) => {
-        const periodStart = new Date(currentDate); // Clone the current date
-        switch (period) {
-          case 'last-week':
-            periodStart.setDate(periodStart.getDate() - 7);
-            break;
-          case 'last-month':
-            periodStart.setMonth(periodStart.getMonth() - 1);
-            break;
-          case 'last-2-months':
-            periodStart.setMonth(periodStart.getMonth() - 2);
-            break;
-          case 'last-6-months':
-            periodStart.setMonth(periodStart.getMonth() - 6);
-            break;
-          case 'last-year':
-            periodStart.setFullYear(periodStart.getFullYear() - 1);
-            break;
-          default:
-            periodStart.setDate(1); // Default to current month
-        }
-        return periodStart.toISOString().split('T')[0];
-      };
-
-      const selectedStartDate = getStartDateForPeriod(period);
-      const selectedEndDate = currentDate.toISOString().split('T')[0]; // Today's date
-
-      matchFilter.date = {
-        $gte: selectedStartDate,
-        $lte: selectedEndDate,
-      };
-    }
+    } 
 
     // Add additional filters
     if (category) {
@@ -92,9 +59,7 @@ export const disp_Exp = async (req, res) => {
           expenses: 1,
         },
       },
-      {
-        $sort: { added_on: 1 }, // Sort by added_on in reverse (descending) order
-      },
+      
     ];
 
     const result = await Expense.aggregate(aggregation);

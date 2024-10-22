@@ -16,6 +16,7 @@
   "type": "module",
   "license": "ISC",
   "dependencies": {
+    "chart.js": "^4.4.5",
     "concurrently": "^9.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -25,6 +26,7 @@
     "mongoose": "^8.7.1",
     "morgan": "^1.10.0",
     "nodemon": "^3.1.7",
+    "react-chartjs-2": "^5.2.0",
     "react-icons": "^5.3.0"
   }
 }
