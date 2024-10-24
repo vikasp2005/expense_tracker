@@ -7,6 +7,8 @@ import { connectDB } from "./db/connectDB.js";
 
 import exprouter from "./router/exp.router.js";
 
+import authrouter from "./router/auth.router.js";
+
 // Load environment variables from .env file
 dotenv.config({path:"../.env"});
 
@@ -25,6 +27,8 @@ const PORT = process.env.PORT || 5000;
 
 //===================================================
 // Routes
+app.use("/api/auth",authrouter);
+
 app.use("/api/exp",exprouter);
 // GET Route
 app.get('/', (req, res) => {
