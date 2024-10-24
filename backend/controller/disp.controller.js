@@ -1,10 +1,10 @@
 import { Expense } from "../model/expense.model.js";
+import mongoose from "mongoose";
 
 export const disp_Exp = async (req, res) => {
   try {
-    const userId = req.user.id;  // Get the user ID from the authenticated user
+    const userId = new mongoose.Types.ObjectId(req.user.id);  // Get the user ID from the authenticated user
     const { category, minAmount, maxAmount, type, startDate, endDate } = req.body;
-
     // Determine the date range based on the provided period or custom dates
     let matchFilter = { userId };  // Only fetch expenses for this user
 
@@ -52,7 +52,7 @@ export const disp_Exp = async (req, res) => {
     ];
 
     const result = await Expense.aggregate(aggregation);
-
+console.log(matchFilter);
     if (result.length === 0) {
       return res.status(200).json({
         message: 'No expenses found for the selected filters.',

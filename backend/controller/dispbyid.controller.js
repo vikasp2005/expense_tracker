@@ -2,10 +2,12 @@ import { Expense } from "../model/expense.model.js";
 
 export const disp_by_id = async (req, res) => {
   try {
+    
     const { id } = req.params;
     const userId = req.user.id;  // Get user ID from authenticated user
 
     // Find the expense by ID and userId
+    
     const response_data = await Expense.findOne({ _id: id, userId });
 
     if (!response_data) {

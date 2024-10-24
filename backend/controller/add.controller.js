@@ -32,17 +32,23 @@ export const add_Exp = [
     }),
 
   async (req, res) => {
+    // Add validation check and logging
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error("Validation errors:", errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
     try {
       const { amount, category, type, desc, date } = req.body;
 
-      // Get the user ID from the authenticated request
-      const userId = req.user.id;
-     
+      // Ensure that userId is set and log it
+      const userId = req.user ? req.user.id : null;
+      if (!userId) {
+        console.error('User ID is missing');
+        return res.status(400).json({ message: 'User is not authenticated' });
+      }
+      console.log('User ID:', userId);
 
       // Create a new expense or earning document
       const newExpense = new Expense({
@@ -56,8 +62,10 @@ export const add_Exp = [
         last_modified_at: new Date(),
       });
 
-      // Save to the database
+      // Save to the database and log the result
       const savedExpense = await newExpense.save();
+     
+
       res.status(200).json({
         message: 'Expense/Earning added successfully',
         data: savedExpense,
