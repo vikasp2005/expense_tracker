@@ -8,7 +8,7 @@ export const edit_Exp = [
     .withMessage('Amount must be a number greater than 0'),
   body('category')
     .optional()
-    .isIn(['Food', 'Transport', 'Entertainment', 'Health', 'Other', 'Travel','Salary'])
+    .isIn(['Food', 'Transport', 'Entertainment', 'Health', 'Other', 'Travel', 'Salary'])
     .withMessage('Invalid category'),
   body('desc')
     .optional()
@@ -17,26 +17,20 @@ export const edit_Exp = [
   body('date')
     .optional()
     .isISO8601()
-    .withMessage('invalid date formate')
+    .withMessage('Invalid date format')
     .custom((value) => {
-      // Convert the value to a Date object
       const inputDate = new Date(value);
-
-      // Get today's date without the time component
       const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);  // Ensure time is set to 00:00:00 for comparison
+      today.setUTCHours(0, 0, 0, 0);
 
-      // Check if the input date is greater than today
       if (inputDate > today) {
         throw new Error('Expense date cannot be in the future');
       }
 
       return true;
     }),
-  
 
   async (req, res) => {
-    // Validate input
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -44,14 +38,16 @@ export const edit_Exp = [
 
     try {
       const { id } = req.params;
+      const userId = req.user.id;  // Get user ID from authenticated user
       const updatedData = req.body;
 
       updatedData.last_modified_at = new Date();
-      // Find the expense by ID and update it
-      const updatedExpense = await Expense.findByIdAndUpdate(id, updatedData, { new: true });
+
+      // Find the expense by ID and userId and update it
+      const updatedExpense = await Expense.findOneAndUpdate({ _id: id, userId }, updatedData, { new: true });
 
       if (!updatedExpense) {
-        return res.status(404).json({ message: 'Expense not found' });
+        return res.status(404).json({ message: 'Expense not found or unauthorized' });
       }
 
       res.status(200).json({

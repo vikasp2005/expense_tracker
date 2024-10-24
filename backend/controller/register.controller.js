@@ -10,12 +10,10 @@ let transporter = nodemailer.createTransport({
   service:'gmail',
   port: 465,
   secure:true,
-  logger:true,
-  debug:true,
   secureConnection:true,
   auth: {
-    user: 'pvikivikas5@gmail.com',
-    pass: 'bmry iejv mlqu ypyb',
+    user: 'webproject2026@gmail.com',
+    pass: 'ogws glsi ghgc ospm',
   },
 });
 
@@ -36,12 +34,12 @@ export const register = async (req, res) => {
     // Send verification email
     const verificationLink = `http://localhost:5000/api/auth/verify/${verificationToken}`;
     const mailOptions = {
-      from: 'pvikivikas5@gmail.com',
+      from: 'webproject2026@gmail.com',
       to: user.email,
       subject: 'Verify Your Email',
       html: `<h4>Click <a href="${verificationLink}">here</a> to verify your account. The link will expire in 1 hour.</h4>`,
     };
-    console.log(mailOptions);
+
     await transporter.sendMail(mailOptions);
 
     res.status(201).json({ message: 'User registered. Please check your email to verify the account.' });

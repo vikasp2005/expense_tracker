@@ -2,25 +2,19 @@ import { Expense } from "../model/expense.model.js";
 
 export const disp_Exp = async (req, res) => {
   try {
-    // Get the current date
-    const currentDate = new Date();
-
-    // Optional filters passed through query parameters
-    const { category, minAmount, maxAmount, type,  startDate, endDate } = req.body;
+    const userId = req.user.id;  // Get the user ID from the authenticated user
+    const { category, minAmount, maxAmount, type, startDate, endDate } = req.body;
 
     // Determine the date range based on the provided period or custom dates
-    let matchFilter = {};
+    let matchFilter = { userId };  // Only fetch expenses for this user
 
-    // Default behavior: if no filters are provided, match all expenses
     if (startDate && endDate) {
-      // Custom date range provided
       matchFilter.date = {
         $gte: new Date(startDate).toISOString().split('T')[0],
         $lte: new Date(endDate).toISOString().split('T')[0],
       };
-    } 
+    }
 
-    // Add additional filters
     if (category) {
       matchFilter.category = category;
     }
@@ -35,16 +29,12 @@ export const disp_Exp = async (req, res) => {
       }
     }
 
-    // Filter by type (Expense or Earning)
     if (type && (type === 'Expense' || type === 'Earning')) {
       matchFilter.type = type;
     }
-    console.log(matchFilter);
-    // Aggregation Pipeline
+
     const aggregation = [
-      {
-        $match: matchFilter,
-      },
+      { $match: matchFilter },
       {
         $group: {
           _id: null,
@@ -59,11 +49,9 @@ export const disp_Exp = async (req, res) => {
           expenses: 1,
         },
       },
-      
     ];
 
     const result = await Expense.aggregate(aggregation);
-    console.log(result);
 
     if (result.length === 0) {
       return res.status(200).json({

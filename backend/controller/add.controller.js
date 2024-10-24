@@ -6,7 +6,7 @@ export const add_Exp = [
     .isFloat({ gt: 0 })
     .withMessage('Amount must be a number greater than 0'),
   body('category')
-    .isIn(['Food', 'Transport', 'Entertainment', 'Health', 'Other', 'Travel','Salary'])
+    .isIn(['Food', 'Transport', 'Entertainment', 'Health', 'Other', 'Travel', 'Salary'])
     .withMessage('Invalid category'),
   body('type')
     .isIn(['Expense', 'Earning'])
@@ -40,11 +40,16 @@ export const add_Exp = [
     try {
       const { amount, category, type, desc, date } = req.body;
 
+      // Get the user ID from the authenticated request
+      const userId = req.user.id;
+     
+
       // Create a new expense or earning document
       const newExpense = new Expense({
+        userId,  // Attach the userId to the expense
         amount,
         category,
-        type,  // Include the type (either "Expense" or "Earning")
+        type,  
         desc,
         date: date ? date : new Date().toISOString().split('T')[0],
         added_on: new Date(),
@@ -53,7 +58,6 @@ export const add_Exp = [
 
       // Save to the database
       const savedExpense = await newExpense.save();
-
       res.status(200).json({
         message: 'Expense/Earning added successfully',
         data: savedExpense,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles.css'; // Import the CSS file for styles
@@ -8,23 +8,50 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      // If the user is already logged in, redirect to the protected page
+      navigate('/view-expenses');
+    }
+  }, [navigate]);
+
+  const validateForm = () => {
+    if (!name || !email || !password) {
+      setError('All fields are required');
+      return false;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Invalid email format');
+      return false;
+    }
+    setError('');
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
+    setLoading(true);
 
     try {
       await axios.post('http://localhost:5000/api/auth/register', { name, email, password });
+      setLoading(false);
       navigate('/login');
     } catch (err) {
       console.error(err);
       setError('Registration failed. Please try again.');
+      setLoading(false);
     }
   };
 
   return (
     <div className="form-container">
       <h2>Register</h2>
+      {loading && <div className="loading-popup">Loading...</div>}
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
