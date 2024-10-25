@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/exp';
-const API_AUTH_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://expense-tracker-backend-kjza.onrender.com/api/exp';
+const API_AUTH_URL = 'https://expense-tracker-backend-kjza.onrender.com/api/auth';
 
 
 const token = () => {
