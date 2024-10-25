@@ -12,7 +12,6 @@ const router =express.Router();
 
 const authenticate = (req, res, next) => {
   const token = req.header('x-auth-token'); // JWT token passed in headers
-
   if (!token) {
     return res.status(401).json({ message: 'No token, authorization denied' });
   }
@@ -24,7 +23,6 @@ const authenticate = (req, res, next) => {
     req.user = decoded; // Attach the decoded user to the request object
     next();
   } catch (error) {
-    
     res.status(401).json({ message: 'Token is not valid' });
   }
 };

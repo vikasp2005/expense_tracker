@@ -4,6 +4,7 @@ import AddExpenseOrEarning from './components/AddExpense';
 import ExpenseTable from './components/ExpenseTable';
 import Register from "./components/Register";
 import Login from "./components/Login";
+import VerifyOTP from './components/VerifyOTP';
 import EditExpense from './components/EditExpense';
 import Navbar from './components/Navbar';
 import './styles.css';
@@ -28,6 +29,7 @@ const App = () => {
         <Routes>
           <Route path="/register" element={<AuthRoute element={<Register />} />} />
           <Route path="/login" element={<AuthRoute element={<Login />} />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/view-expenses" element={<PrivateRoute element={<ExpenseTable />} />} />
           <Route path="/edit-expense/:id" element={<PrivateRoute element={<EditExpense />} />} />
           <Route path="/add" element={<PrivateRoute element={<AddExpenseOrEarning />} />} />

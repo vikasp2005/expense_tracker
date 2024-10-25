@@ -7,8 +7,7 @@ export const disp_by_id = async (req, res) => {
     const userId = req.user.id;  // Get user ID from authenticated user
 
     // Find the expense by ID and userId
-    
-    const response_data = await Expense.findOne({ _id: id, userId });
+    const response_data = await Expense.findOne({ _id: id, userId: userId });
 
     if (!response_data) {
       return res.status(404).json({ message: 'Expense not found or unauthorized' });

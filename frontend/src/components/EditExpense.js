@@ -22,6 +22,7 @@ const EditExpense = () => {
   useEffect(() => {
     const getExpense = async () => {
       try {
+        
         const expense = await fetchExpenseById(id);
         setAmount(expense.amount);
         setType(expense.type); // Set type based on fetched data

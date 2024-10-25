@@ -52,7 +52,6 @@ export const disp_Exp = async (req, res) => {
     ];
 
     const result = await Expense.aggregate(aggregation);
-console.log(matchFilter);
     if (result.length === 0) {
       return res.status(200).json({
         message: 'No expenses found for the selected filters.',

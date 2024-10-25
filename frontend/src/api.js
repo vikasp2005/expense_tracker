@@ -17,11 +17,11 @@ export const fetchExpenses = async (expense) => {
   
 // Fetch a single expense by ID
 export const fetchExpenseById = async (id) => {
-    const response = await axios.post(`${API_URL}/disp_exp_by_id/${id}`,{
-      headers: {
-        'x-auth-token': token  // Pass the token in the headers
-      }
-});
+  const response = await axios.post(`${API_URL}/disp_exp_by_id/${id}`,id,{
+    headers: {
+      'x-auth-token': token  // Pass the token in the headers
+    }
+  });
     return response.data.expense;
   };
 
