@@ -1,15 +1,42 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/exp';
+const API_AUTH_URL = 'http://localhost:5000/api/auth';
 
-const token = localStorage.getItem('token');
+
+const token = () => {
+  return localStorage.getItem('token')
+};
+
+
+export const register = async(user) => {
+  return axios.post(`${API_AUTH_URL}/register`, user);
+
+};
+
+export const verifyotp = async(otp) =>{
+
+  return axios.post(`${API_AUTH_URL}/verify`, otp);
+
+};
+
+export const sendExpensesEmail = async(expence) => {
+
+  return axios.post(`${API_URL}/send-expenses-email`,  expence,{
+    headers: {
+      'x-auth-token': token() // Pass the token in the headers
+    }
+});
+  
+
+};
 
 
 // Get all expenses
 export const fetchExpenses = async (expense) => {
     const response = await axios.post(`${API_URL}/disp_exp`,expense ,{
       headers: {
-        'x-auth-token': token  // Pass the token in the headers
+        'x-auth-token': token() // Pass the token in the headers
       }
 });
     return response.data;
@@ -19,7 +46,7 @@ export const fetchExpenses = async (expense) => {
 export const fetchExpenseById = async (id) => {
   const response = await axios.post(`${API_URL}/disp_exp_by_id/${id}`,id,{
     headers: {
-      'x-auth-token': token  // Pass the token in the headers
+      'x-auth-token': token()  // Pass the token in the headers
     }
   });
     return response.data.expense;
@@ -30,7 +57,7 @@ export const fetchExpenseById = async (id) => {
 export const addExpenseOrEarning = async (expense) => {
   return axios.post(`${API_URL}/add_exp`, expense,{
     headers: {
-      'x-auth-token': token  // Pass the token in the headers
+      'x-auth-token': token()  // Pass the token in the headers
     }
 });
 };
@@ -39,7 +66,7 @@ export const addExpenseOrEarning = async (expense) => {
 export const updateExpense = async (id, updatedExpense) => {
   return axios.put(`${API_URL}/edit_exp/${id}`, updatedExpense,{
     headers: {
-      'x-auth-token': token  // Pass the token in the headers
+      'x-auth-token': token()  // Pass the token in the headers
     }
 });
 };
@@ -48,7 +75,9 @@ export const updateExpense = async (id, updatedExpense) => {
 export const deleteExpense = async (id) => {
   return axios.delete(`${API_URL}/delete_exp/${id}`,{
     headers: {
-      'x-auth-token': token  // Pass the token in the headers
+      'x-auth-token': token()  // Pass the token in the headers
     }
 });
 };
+
+

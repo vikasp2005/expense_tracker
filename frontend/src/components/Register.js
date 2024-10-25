@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { register } from "../api";
 import '../styles.css'; // Import the CSS file for styles
 
 const Register = () => {
@@ -38,9 +38,9 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await axios.post('http://localhost:5000/api/auth/register', { name, email, password });
+      await register({ name, email, password });
       setLoading(false);
-      navigate('/login');
+      navigate('/verify-otp');
     } catch (err) {
       console.error(err);
       setError('Registration failed. Please try again.');

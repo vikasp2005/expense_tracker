@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { fetchExpenses, deleteExpense } from '../api';
+import { fetchExpenses, deleteExpense , sendExpensesEmail} from '../api';
 import { useNavigate } from 'react-router-dom';
 import { MdDelete } from "react-icons/md";
 import { FiEdit } from "react-icons/fi";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import '../styles.css'; // Import the CSS file
 
 const formatDate = (dateString) => {
@@ -22,6 +24,10 @@ const ExpenseTable = () => {
   const [deletePopup, setDeletePopup] = useState(false);
   const [confirmDeletePopup, setConfirmDeletePopup] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
+  const [noExpensePopup, setNoExpensePopup] = useState(false); // New state for no expense popup
+  
+
+
 
   // Filter states
   const [typeFilter, setTypeFilter] = useState('');
@@ -33,6 +39,7 @@ const ExpenseTable = () => {
   const [period, setPeriod] = useState('All');
 
   const navigate = useNavigate();
+
 
   const calculatePeriodDates = (selectedPeriod) => {
     const currentDate = new Date();
@@ -109,6 +116,10 @@ const ExpenseTable = () => {
     fetchFilteredExpenses();
   }, [fetchFilteredExpenses]);
 
+
+
+
+
   const handleDelete = async () => {
     try {
       await deleteExpense(expenseToDelete._id);
@@ -140,12 +151,76 @@ const ExpenseTable = () => {
     navigate(`/edit-expense/${id}`);
   };
 
+  const closeNoExpensePopup = () => {
+    setNoExpensePopup(false);
+  };
+
+  const generatePDF = () => {
+
+    if (expenses.length === 0) {
+      setNoExpensePopup(true);
+      return;
+    }
+
+
+    const doc = new jsPDF();
+    doc.text("Expense Report", 20, 10);
+    doc.autoTable({
+      startY: 20,
+      head: [['Amount', 'Type', 'Category', 'Description', 'Date', 'Added On', 'Last Modified']],
+      body: expenses.map(expense => [
+        `Rs.${expense.amount}`, 
+        expense.type, 
+        expense.category, 
+        expense.desc || "NULL", 
+        formatDate(expense.date), 
+        formatDate(expense.added_on), 
+        formatDate(expense.last_modified_at)
+      ]),
+    });
+    doc.save("expense_report.pdf");
+  };
+
+  const sendEmail = async () => {
+
+     if (expenses.length === 0) {
+      setNoExpensePopup(true);
+      return;
+    }
+
+
+    try {
+
+      const response = await sendExpensesEmail(expenses); // Call the backend API to send the email
+      if (response.status === 200) {
+        alert("Expenses report sent to your email successfully!");
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("Failed to send expenses report email.");
+    }
+ 
+  };
+
+
+  
+
+
+
  
 
   return (
     <div>
       <div className="card">
         <h2>Expense List</h2>
+
+        
+        <div className="actions">
+          <button onClick={generatePDF} className="pdf-button">Download PDF</button>
+          <button  onClick={sendEmail} className="email-button">Send to Email</button>
+        </div>
+
+
         {error && <p className="error-message">{error}</p>}
 
         <div className="totals">
@@ -286,12 +361,17 @@ const ExpenseTable = () => {
         </div>
       )}
 
+{noExpensePopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <p>No expenses available to download.</p>
+            <button className="confirm-btn" onClick={closeNoExpensePopup}>Close</button>
+          </div>
+        </div>
+         )}
+       
       {/* Graphs */}
       <div className="graph-container">
-        <div className="chart">
-        
-        </div>
-        
       </div>
       
     </div>

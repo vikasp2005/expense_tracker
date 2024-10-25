@@ -22,6 +22,7 @@ const AuthRoute = ({ element }) => {
 };
 
 const App = () => {
+  
   return (
     <Router>
       <Navbar />

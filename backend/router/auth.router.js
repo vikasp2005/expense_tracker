@@ -6,7 +6,7 @@ import { login } from "../controller/login.controller.js";
 const router = express.Router();
 
 router.post("/register", register);
-router.post('/verify', verifyEmail);
+router.post('/verify',  verifyEmail);
 router.post('/login', login);
 
 // Add logout route (optional, as logout is mostly handled client-side by removing the token)

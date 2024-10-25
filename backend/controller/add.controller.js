@@ -48,7 +48,6 @@ export const add_Exp = [
         console.error('User ID is missing');
         return res.status(400).json({ message: 'User is not authenticated' });
       }
-      console.log('User ID:', userId);
 
       // Create a new expense or earning document
       const newExpense = new Expense({
