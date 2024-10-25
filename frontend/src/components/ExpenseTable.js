@@ -25,6 +25,7 @@ const ExpenseTable = () => {
   const [confirmDeletePopup, setConfirmDeletePopup] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [noExpensePopup, setNoExpensePopup] = useState(false); // New state for no expense popup
+  const [emailPopup, setEmailPopup] = useState({ show: false, message: '' });
   
 
 
@@ -193,17 +194,18 @@ const ExpenseTable = () => {
 
       const response = await sendExpensesEmail(expenses); // Call the backend API to send the email
       if (response.status === 200) {
-        alert("Expenses report sent to your email successfully!");
+        setEmailPopup({ show: true, message: "Expenses report sent to your email successfully!" });
       }
     } catch (error) {
       console.error("Error sending email:", error);
-      alert("Failed to send expenses report email.");
+      setEmailPopup({ show: true, message: "Failed to send expenses report email." });
     }
  
   };
 
+;
+  const closeEmailPopup = () => setEmailPopup({ show: false, message: '' });
 
-  
 
 
 
@@ -369,6 +371,15 @@ const ExpenseTable = () => {
           </div>
         </div>
          )}
+
+{emailPopup.show && (
+          <div className="popup">
+            <div className="popup-content">
+              <p>{emailPopup.message}</p>
+              <button className="confirm-btn" onClick={closeEmailPopup}>Close</button>
+            </div>
+          </div>
+        )}
        
       {/* Graphs */}
       <div className="graph-container">
