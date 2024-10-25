@@ -10,7 +10,7 @@ import exprouter from "./router/exp.router.js";
 import authrouter from "./router/auth.router.js";
 
 // Load environment variables from .env file
-dotenv.config({path:"../.env"});
+dotenv.config();
 
 const app = express();
 
