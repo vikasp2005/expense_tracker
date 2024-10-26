@@ -33,7 +33,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await axios.post('https://expense-tracker-backend-kjza.onrender.com/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       setLoading(false);
       navigate('/view-expenses');
