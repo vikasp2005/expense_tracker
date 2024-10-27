@@ -27,8 +27,10 @@ export const sendExpensesEmail = async(expence) => {
       'x-auth-token': token() // Pass the token in the headers
     }
 });
-  
+};
 
+export const login = async(login_data) => {
+  return axios.post(`${API_AUTH_URL}/login`, login_data);
 };
 
 

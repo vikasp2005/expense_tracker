@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { login } from '../api';
 import '../styles.css'; // Import the CSS file for styles
 
 const Login = () => {
@@ -33,7 +33,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await login({ email, password });
       localStorage.setItem('token', res.data.token);
       setLoading(false);
       navigate('/view-expenses');

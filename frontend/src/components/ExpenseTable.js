@@ -3,6 +3,8 @@ import { fetchExpenses, deleteExpense , sendExpensesEmail} from '../api';
 import { useNavigate } from 'react-router-dom';
 import { MdDelete } from "react-icons/md";
 import { FiEdit } from "react-icons/fi";
+import { Chart as ChartJS } from 'chart.js/auto';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import '../styles.css'; // Import the CSS file
@@ -26,6 +28,9 @@ const ExpenseTable = () => {
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [noExpensePopup, setNoExpensePopup] = useState(false); // New state for no expense popup
   const [emailPopup, setEmailPopup] = useState({ show: false, message: '' });
+  const [monthlyData, setMonthlyData] = useState(Array(12).fill({ earnings: 0, expenses: 0 }));
+
+
   
 
 
@@ -73,6 +78,70 @@ const ExpenseTable = () => {
     setEndDate(end);
   };
 
+  const calculateMonthlyData = useCallback((expenses) => {
+    const newMonthlyData = Array(12).fill({ earnings: 0, expenses: 0 });
+    expenses.forEach(expense => {
+      const month = new Date(expense.date).getMonth();
+      if (expense.type === 'Earning') {
+        newMonthlyData[month] = {
+          ...newMonthlyData[month],
+          earnings: newMonthlyData[month].earnings + expense.amount,
+        };
+      } else {
+        newMonthlyData[month] = {
+          ...newMonthlyData[month],
+          expenses: newMonthlyData[month].expenses + expense.amount,
+        };
+      }
+    });
+    setMonthlyData(newMonthlyData);
+  },[]);
+
+
+  const barChartData = {
+    labels: [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ],
+    datasets: [
+      {
+        label: 'Earnings',
+        data: monthlyData.map(data => data.earnings),
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+      },
+      {
+        label: 'Expenses',
+        data: monthlyData.map(data => data.expenses),
+        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+      },
+      {
+        label: 'Savings',
+        data: monthlyData.map(data => data.earnings - data.expenses),
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+      },
+    ],
+  };
+
+
+const pieChartData = {
+  labels :  expenses.map(expense => expense.category),
+  datasets : [
+    {
+      data  : expenses.map(expense => expense.amount),
+      backgroundColor : [
+        'rgba(255, 99, 132, 0.6)',
+        'rgba(54, 162, 235, 0.6)',
+        'rgba(255, 100, 0, 0.6)',
+        'rgba(0, 0, 255, 0.6)',
+        'rgba(255 , 0, 0, 0.6)',
+        'rgba(0, 255, 0, 0.6)',
+      ],
+    },
+    
+  ],
+  
+};
+
   const fetchFilteredExpenses = useCallback(async () => {
     try {
       const response = await fetchExpenses({
@@ -116,6 +185,10 @@ const ExpenseTable = () => {
   useEffect(() => {
     fetchFilteredExpenses();
   }, [fetchFilteredExpenses]);
+
+  useEffect(()=>{
+    calculateMonthlyData(expenses);
+  },[calculateMonthlyData,expenses]);
 
 
 
@@ -213,7 +286,21 @@ const ExpenseTable = () => {
 
   return (
     <div>
+
+
+      {/* Left: Bar Chart */}  
+      <div className="bar">
+        <Bar data={barChartData} options={{ responsive: true }} />
+      
+
+      <div className='pie'>
+      <Doughnut data={pieChartData} options={{ responsive: true }} />
+      </div>
+      </div>
+
+
       <div className="card">
+      
         <h2>Expense List</h2>
 
         
@@ -294,7 +381,7 @@ const ExpenseTable = () => {
           />
         </div>
 
-        <table className="table">
+        <table className="table min-w-full bg-white">
           <thead>
             <tr>
               <th>Amount</th>
@@ -381,9 +468,9 @@ const ExpenseTable = () => {
           </div>
         )}
        
-      {/* Graphs */}
-      <div className="graph-container">
-      </div>
+    
+      
+
       
     </div>
   );
