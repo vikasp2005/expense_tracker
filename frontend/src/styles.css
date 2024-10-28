@@ -287,10 +287,30 @@ body {
   font-size: 1rem;
 }
 
-.btn2
+.btn2-edit
 {
   font-size : 30px;
   padding-left: 10px;
+}
+
+.btn2-edit:hover
+{
+  font-size : 30px;
+  padding-left: 10px;
+  color:yellowgreen;
+}
+
+.btn2-delete
+{
+  font-size : 30px;
+  padding-left: 10px;
+}
+
+.btn2-delete:hover
+{
+  font-size : 30px;
+  padding-left: 10px;
+  color:red;
 }
 
 .filters {
@@ -336,6 +356,33 @@ body {
   margin: 0.5rem 0;
   font-size: 1.2rem;
   font-weight: bold;
+}
+
+
+.logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: red;
+  color: white;
+  padding: 10px 20px;
+  width: auto; /* Adjusts to fit content */
+  max-width: 150px; /* Optional max width */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: darkred;
+}
+
+.logout-button:active {
+  background-color: crimson;
 }
 
 .bar{

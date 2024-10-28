@@ -407,12 +407,12 @@ const pieChartData = {
                   <td>{formatDate(expense.last_modified_at)}</td>
                   <td>
                   <FiEdit
-                      className = "btn2"
+                      className = "btn2-edit"
                       onClick={() => handleEdit(expense._id)}
                     />
                       
                     <MdDelete 
-                      className = "btn2"
+                      className = "btn2-delete"
                       onClick={() => confirmDelete(expense)}
                       />
                   </td>

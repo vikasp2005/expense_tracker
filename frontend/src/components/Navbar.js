@@ -21,7 +21,10 @@ const Navbar = () => {
       <div>
         <Link to="/add">Add Expense/Earning</Link>
         <Link to="/view-expenses">View Expenses</Link>
-        <button onClick={handleLogout}>Logout</button>
+      </div>
+      <div>
+        <button className="logout-button" onClick={handleLogout}>Logout</button>
+
       </div>
     </nav>
   );
