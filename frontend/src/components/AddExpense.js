@@ -132,6 +132,7 @@ const AddExpenseOrEarning = () => {
   };
 
   return (
+    
     <div className="card">
       <h2>Add {type}</h2>
       {error && <p className="error-message">{error}</p>}
