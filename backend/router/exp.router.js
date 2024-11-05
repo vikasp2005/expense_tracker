@@ -6,6 +6,7 @@ import { delete_Exp } from "../controller/delete.controller.js";
 import { disp_Exp } from "../controller/disp.controller.js";
 import { disp_by_id } from "../controller/dispbyid.controller.js";
 import { send_exp_email } from "../controller/sende-exp.controller.js";
+import { getuser } from "../controller/getuser.controller.js";
 
 
 
@@ -22,5 +23,7 @@ router.post("/disp_exp",authenticate,disp_Exp);
 router.post("/disp_exp_by_id/:id",authenticate,disp_by_id);
 
 router.post("/send-expenses-email",authenticate,send_exp_email);
+
+router.get("/user",authenticate,getuser);
 
 export default router;
