@@ -82,4 +82,17 @@ export const deleteExpense = async (id) => {
 });
 };
 
+export const getProfile = async() => {
+  
+      const response = await axios.get(`${API_URL}/user`,{
+        headers: {
+          'x-auth-token': token()  // Pass the token in the headers
+        }
+      });
+      return response.data.user;
+        
+    
+};
+
+
 

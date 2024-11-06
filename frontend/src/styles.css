@@ -505,3 +505,36 @@ h2 {
 .pdf-button:hover, .email-button:hover {
   opacity: 0.8;
 }
+
+
+.profile-section {
+  position: relative;
+  display: flex;
+}
+
+.profile-icon {
+  cursor: pointer;
+}
+
+.profile-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%; /* Makes the image circular */
+}
+
+.profile-info {
+  position: absolute;
+  top: 50px; /* Adjust based on your layout */
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* Ensures the info box appears above other elements */
+  white-space: nowrap;
+}
+
+.profile-info p {
+  margin: 5px 0;
+}
