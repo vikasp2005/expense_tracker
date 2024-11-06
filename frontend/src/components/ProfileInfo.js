@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getProfile } from '../api';
+import { CgProfile } from "react-icons/cg";
 
 const ProfileInfo = () => {
   const [showProfileInfo, setShowProfileInfo] = useState(false);
@@ -24,7 +25,7 @@ const ProfileInfo = () => {
       onMouseLeave={() => setShowProfileInfo(false)}
     >
       {/* Replace with your own profile image or icon */}
-      <img src="/path/to/profile-icon.png" alt="Profile" className="profile-image" />
+      <CgProfile className="profile-image" />
     </div>
     {showProfileInfo && (
       <div className="profile-info">

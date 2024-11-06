@@ -30,7 +30,7 @@ const MainLayout = () => {
 
   return (
     <div>
-      {showNavbar && <Navbar />} {/* Render Navbar conditionally */}
+      {isAuthenticated() && showNavbar && <Navbar />} {/* Render Navbar conditionally */}
     <div className="container">
       <Routes>
         <Route path="/login" element={<AuthRoute element={<Login />} />} />
