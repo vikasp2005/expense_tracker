@@ -7,6 +7,7 @@ import { Chart as ChartJS } from 'chart.js/auto';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 import '../styles.css'; // Import the CSS file
 
 const formatDate = (dateString) => {
@@ -29,6 +30,8 @@ const ExpenseTable = () => {
   const [noExpensePopup, setNoExpensePopup] = useState(false); // New state for no expense popup
   const [emailPopup, setEmailPopup] = useState({ show: false, message: '' });
   const [monthlyData, setMonthlyData] = useState(Array(12).fill({ earnings: 0, expenses: 0 }));
+  const [loadingPopup, setLoadingPopup] = useState(false); // State for loading popup
+
 
 
   
@@ -122,13 +125,28 @@ const ExpenseTable = () => {
     ],
   };
 
+// Helper function to check if a date is in the current month
+const isCurrentMonth = (dateString) => {
+  const date = new Date(dateString);
+  const currentDate = new Date();
+  return (
+    date.getMonth() === currentDate.getMonth() &&
+    date.getFullYear() === currentDate.getFullYear()
+  );
+};
 
+// Filter expenses to only include those from the current month
+const currentMonthExpenses = expenses.filter(expense =>
+  isCurrentMonth(expense.date)
+);
+
+// Prepare the pie chart data based on current month expenses
 const pieChartData = {
-  labels :  expenses.map(expense => expense.category),
-  datasets : [
+  labels: currentMonthExpenses.map(expense => expense.category),
+  datasets: [
     {
-      data  : expenses.map(expense => expense.amount),
-      backgroundColor : [
+      data: currentMonthExpenses.map(expense => expense.amount),
+      backgroundColor: [
         'rgba(255, 99, 132, 0.6)',
         'rgba(54, 162, 235, 0.6)',
         'rgba(255, 100, 0, 0.6)',
@@ -137,10 +155,9 @@ const pieChartData = {
         'rgba(0, 255, 0, 0.6)',
       ],
     },
-    
   ],
-  
 };
+
 
   const fetchFilteredExpenses = useCallback(async () => {
     try {
@@ -229,34 +246,106 @@ const pieChartData = {
     setNoExpensePopup(false);
   };
 
-  const generatePDF = () => {
 
-    if (expenses.length === 0) {
-      setNoExpensePopup(true);
-      return;
-    }
+  
 
-
+  
+  const generatePDF = async () => {
     const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
     doc.text("Expense Report", 20, 10);
+    
+    // Add totals section
+    doc.setFontSize(14);
+    doc.text("Summary", 20, 20);
     doc.autoTable({
-      startY: 20,
-      head: [['Amount', 'Type', 'Category', 'Description', 'Date', 'Added On', 'Last Modified']],
-      body: expenses.map(expense => [
-        `Rs.${expense.amount}`, 
-        expense.type, 
-        expense.category, 
-        expense.desc || "NULL", 
-        formatDate(expense.date), 
-        formatDate(expense.added_on), 
-        formatDate(expense.last_modified_at)
-      ]),
+      startY: 25,
+      body: [
+        ['Total Earnings', `Rs.${totalEarnings}`],
+        ['Total Expenses', `Rs.${totalExpenses}`],
+        ['Total Savings', `Rs.${totalSavings}`]
+      ],
+      theme: 'grid',
+      styles: { fillColor: [41, 128, 185] },
     });
-    doc.save("expense_report.pdf");
+  
+    // Track current Y position to avoid overlapping
+    let currentY = doc.lastAutoTable.finalY + 10;
+  
+    // Capture and add bar chart
+    const barChartElement = document.querySelector('.bar canvas');
+    if (barChartElement) {
+      const barChartCanvas = await html2canvas(barChartElement);
+      const barChartImage = barChartCanvas.toDataURL('image/png');
+      doc.addImage(barChartImage, 'PNG', 15, currentY, 180, 90);
+      currentY += 100; // Update Y position after the bar chart
+    }
+  
+    // Capture and add pie chart
+    const pieChartElement = document.querySelector('.pie canvas');
+    if (pieChartElement) {
+      const pieChartCanvas = await html2canvas(pieChartElement);
+      const pieChartImage = pieChartCanvas.toDataURL('image/png');
+      doc.addImage(pieChartImage, 'PNG', 15, currentY, 180, 90);
+      currentY += 100; // Update Y position after the pie chart
+    }
+  
+    // Add table for expenses
+    doc.setFontSize(14);
+    doc.text("Expense Details", 20, currentY + 10); // Positioning the table below the charts
+    doc.autoTable({
+      startY: currentY + 20,
+      head: [['Amount', 'Type', 'Category', 'Description', 'Date']],
+      body: expenses.map(expense => [
+        `Rs.${expense.amount}`,
+        expense.type,
+        expense.category,
+        expense.desc || "N/A",
+        formatDate(expense.date)
+      ]),
+      theme: 'striped'
+    });
+  
+      // Generate and return the PDF Blob
+  return new Promise((resolve) => {
+    const pdfBlob = doc.output('blob'); // Generate Blob from PDF content
+    resolve(pdfBlob);
+  });
   };
+  
+
+  const downloadPDF = async () => {
+    setLoadingPopup(true); // Show loading popup
+  try
+  {
+    const pdfBlob = await generatePDF();
+    const url = URL.createObjectURL(pdfBlob);
+  
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'expense_report.pdf';
+    document.body.appendChild(a);
+    a.click();
+  
+    URL.revokeObjectURL(url); // Clean up the URL object after download
+    document.body.removeChild(a);
+  }
+  catch (err) {
+    setEmailPopup({ show: true, message: "Failed to send email." });
+  } finally {
+    setLoadingPopup(false); // Hide loading popup
+  }
+  };
+  
+  
+  
 
   const sendEmail = async () => {
+    setLoadingPopup(true); // Show loading popup
 
+  
      if (expenses.length === 0) {
       setNoExpensePopup(true);
       return;
@@ -265,7 +354,13 @@ const pieChartData = {
 
     try {
 
-      const response = await sendExpensesEmail(expenses); // Call the backend API to send the email
+      const pdfBlob = await generatePDF();
+
+      // Create a FormData object to send binary data
+      const formData = new FormData();
+      formData.append("pdf", pdfBlob, "expense_report.pdf"); // append file with name and filename
+
+      const response = await sendExpensesEmail(formData); // Call the backend API to send the email
       if (response.status === 200) {
         setEmailPopup({ show: true, message: "Expenses report sent to your email successfully!" });
       }
@@ -273,10 +368,13 @@ const pieChartData = {
       console.error("Error sending email:", error);
       setEmailPopup({ show: true, message: "Failed to send expenses report email." });
     }
+    finally {
+      setLoadingPopup(false); // Hide loading popup
+    }
  
   };
 
-;
+
   const closeEmailPopup = () => setEmailPopup({ show: false, message: '' });
 
 
@@ -305,7 +403,7 @@ const pieChartData = {
 
         
         <div className="actions">
-          <button onClick={generatePDF} className="pdf-button">Download PDF</button>
+          <button onClick={downloadPDF} className="pdf-button">Download PDF</button>
           <button  onClick={sendEmail} className="email-button">Send to Email</button>
         </div>
 
@@ -467,6 +565,8 @@ const pieChartData = {
             </div>
           </div>
         )}
+
+    {loadingPopup && <div className="loading-popup">Loading...</div>}
        
     
       
