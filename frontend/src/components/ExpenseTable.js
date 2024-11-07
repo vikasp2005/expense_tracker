@@ -123,13 +123,28 @@ const ExpenseTable = () => {
     ],
   };
 
+// Helper function to check if a date is in the current month
+const isCurrentMonth = (dateString) => {
+  const date = new Date(dateString);
+  const currentDate = new Date();
+  return (
+    date.getMonth() === currentDate.getMonth() &&
+    date.getFullYear() === currentDate.getFullYear()
+  );
+};
 
+// Filter expenses to only include those from the current month
+const currentMonthExpenses = expenses.filter(expense =>
+  isCurrentMonth(expense.date)
+);
+
+// Prepare the pie chart data based on current month expenses
 const pieChartData = {
-  labels :  expenses.map(expense => expense.category),
-  datasets : [
+  labels: currentMonthExpenses.map(expense => expense.category),
+  datasets: [
     {
-      data  : expenses.map(expense => expense.amount),
-      backgroundColor : [
+      data: currentMonthExpenses.map(expense => expense.amount),
+      backgroundColor: [
         'rgba(255, 99, 132, 0.6)',
         'rgba(54, 162, 235, 0.6)',
         'rgba(255, 100, 0, 0.6)',
@@ -138,10 +153,9 @@ const pieChartData = {
         'rgba(0, 255, 0, 0.6)',
       ],
     },
-    
   ],
-  
 };
+
 
   const fetchFilteredExpenses = useCallback(async () => {
     try {
@@ -292,8 +306,26 @@ const pieChartData = {
       theme: 'striped'
     });
   
-    // Save PDF
-    doc.save("expense_report.pdf");
+      // Generate and return the PDF Blob
+  return new Promise((resolve) => {
+    const pdfBlob = doc.output('blob'); // Generate Blob from PDF content
+    resolve(pdfBlob);
+  });
+  };
+  
+
+  const downloadPDF = async () => {
+    const pdfBlob = await generatePDF();
+    const url = URL.createObjectURL(pdfBlob);
+  
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'expense_report.pdf';
+    document.body.appendChild(a);
+    a.click();
+  
+    URL.revokeObjectURL(url); // Clean up the URL object after download
+    document.body.removeChild(a);
   };
   
   
@@ -309,7 +341,13 @@ const pieChartData = {
 
     try {
 
-      const response = await sendExpensesEmail(expenses); // Call the backend API to send the email
+      const pdfBlob = await generatePDF();
+
+      // Create a FormData object to send binary data
+      const formData = new FormData();
+      formData.append("pdf", pdfBlob, "expense_report.pdf"); // append file with name and filename
+
+      const response = await sendExpensesEmail(formData); // Call the backend API to send the email
       if (response.status === 200) {
         setEmailPopup({ show: true, message: "Expenses report sent to your email successfully!" });
       }
@@ -320,7 +358,7 @@ const pieChartData = {
  
   };
 
-;
+
   const closeEmailPopup = () => setEmailPopup({ show: false, message: '' });
 
 
@@ -349,7 +387,7 @@ const pieChartData = {
 
         
         <div className="actions">
-          <button onClick={generatePDF} className="pdf-button">Download PDF</button>
+          <button onClick={downloadPDF} className="pdf-button">Download PDF</button>
           <button  onClick={sendEmail} className="email-button">Send to Email</button>
         </div>
 

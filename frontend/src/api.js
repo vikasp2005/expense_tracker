@@ -20,14 +20,22 @@ export const verifyotp = async(otp) =>{
 
 };
 
-export const sendExpensesEmail = async(expence) => {
+export const sendExpensesEmail = async (expensepdf) => {
 
-  return axios.post(`${API_URL}/send-expenses-email`,  expence,{
-    headers: {
-      'x-auth-token': token() // Pass the token in the headers
-    }
-});
+  try {
+    const response = await axios.post(`${API_URL}/send-expenses-email`, expensepdf, {
+      headers: {
+        'x-auth-token': token() // Axios will handle 'Content-Type' automatically for FormData
+      }
+    });
+    
+    return response; // Return the response for handling in the calling function
+  } catch (error) {
+    console.error("Error sending expenses email:", error);
+    throw error; // Rethrow for handling in the calling function
+  }
 };
+
 
 export const login = async(login_data) => {
   return axios.post(`${API_AUTH_URL}/login`, login_data);
@@ -83,6 +91,8 @@ export const deleteExpense = async (id) => {
 };
 
 export const getProfile = async() => {
+
+  try{
   
       const response = await axios.get(`${API_URL}/user`,{
         headers: {
@@ -90,6 +100,17 @@ export const getProfile = async() => {
         }
       });
       return response.data.user;
+    }
+    catch(error)
+    {
+      if(error.response.data.message === "Token is not valid")
+      {
+     
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+    }
+    
         
     
 };
