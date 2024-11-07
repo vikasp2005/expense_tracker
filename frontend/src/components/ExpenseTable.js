@@ -7,6 +7,7 @@ import { Chart as ChartJS } from 'chart.js/auto';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 import '../styles.css'; // Import the CSS file
 
 const formatDate = (dateString) => {
@@ -229,31 +230,74 @@ const pieChartData = {
     setNoExpensePopup(false);
   };
 
-  const generatePDF = () => {
 
-    if (expenses.length === 0) {
-      setNoExpensePopup(true);
-      return;
-    }
+  
 
-
+  
+  const generatePDF = async () => {
     const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
     doc.text("Expense Report", 20, 10);
+    
+    // Add totals section
+    doc.setFontSize(14);
+    doc.text("Summary", 20, 20);
     doc.autoTable({
-      startY: 20,
-      head: [['Amount', 'Type', 'Category', 'Description', 'Date', 'Added On', 'Last Modified']],
-      body: expenses.map(expense => [
-        `Rs.${expense.amount}`, 
-        expense.type, 
-        expense.category, 
-        expense.desc || "NULL", 
-        formatDate(expense.date), 
-        formatDate(expense.added_on), 
-        formatDate(expense.last_modified_at)
-      ]),
+      startY: 25,
+      body: [
+        ['Total Earnings', `Rs.${totalEarnings}`],
+        ['Total Expenses', `Rs.${totalExpenses}`],
+        ['Total Savings', `Rs.${totalSavings}`]
+      ],
+      theme: 'grid',
+      styles: { fillColor: [41, 128, 185] },
     });
+  
+    // Track current Y position to avoid overlapping
+    let currentY = doc.lastAutoTable.finalY + 10;
+  
+    // Capture and add bar chart
+    const barChartElement = document.querySelector('.bar canvas');
+    if (barChartElement) {
+      const barChartCanvas = await html2canvas(barChartElement);
+      const barChartImage = barChartCanvas.toDataURL('image/png');
+      doc.addImage(barChartImage, 'PNG', 15, currentY, 180, 90);
+      currentY += 100; // Update Y position after the bar chart
+    }
+  
+    // Capture and add pie chart
+    const pieChartElement = document.querySelector('.pie canvas');
+    if (pieChartElement) {
+      const pieChartCanvas = await html2canvas(pieChartElement);
+      const pieChartImage = pieChartCanvas.toDataURL('image/png');
+      doc.addImage(pieChartImage, 'PNG', 15, currentY, 180, 90);
+      currentY += 100; // Update Y position after the pie chart
+    }
+  
+    // Add table for expenses
+    doc.setFontSize(14);
+    doc.text("Expense Details", 20, currentY + 10); // Positioning the table below the charts
+    doc.autoTable({
+      startY: currentY + 20,
+      head: [['Amount', 'Type', 'Category', 'Description', 'Date']],
+      body: expenses.map(expense => [
+        `Rs.${expense.amount}`,
+        expense.type,
+        expense.category,
+        expense.desc || "N/A",
+        formatDate(expense.date)
+      ]),
+      theme: 'striped'
+    });
+  
+    // Save PDF
     doc.save("expense_report.pdf");
   };
+  
+  
+  
 
   const sendEmail = async () => {
 
