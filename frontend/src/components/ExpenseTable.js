@@ -30,6 +30,8 @@ const ExpenseTable = () => {
   const [noExpensePopup, setNoExpensePopup] = useState(false); // New state for no expense popup
   const [emailPopup, setEmailPopup] = useState({ show: false, message: '' });
   const [monthlyData, setMonthlyData] = useState(Array(12).fill({ earnings: 0, expenses: 0 }));
+  const [loadingPopup, setLoadingPopup] = useState(false); // State for loading popup
+
 
 
   
@@ -315,6 +317,9 @@ const pieChartData = {
   
 
   const downloadPDF = async () => {
+    setLoadingPopup(true); // Show loading popup
+  try
+  {
     const pdfBlob = await generatePDF();
     const url = URL.createObjectURL(pdfBlob);
   
@@ -326,13 +331,21 @@ const pieChartData = {
   
     URL.revokeObjectURL(url); // Clean up the URL object after download
     document.body.removeChild(a);
+  }
+  catch (err) {
+    setEmailPopup({ show: true, message: "Failed to send email." });
+  } finally {
+    setLoadingPopup(false); // Hide loading popup
+  }
   };
   
   
   
 
   const sendEmail = async () => {
+    setLoadingPopup(true); // Show loading popup
 
+  
      if (expenses.length === 0) {
       setNoExpensePopup(true);
       return;
@@ -354,6 +367,9 @@ const pieChartData = {
     } catch (error) {
       console.error("Error sending email:", error);
       setEmailPopup({ show: true, message: "Failed to send expenses report email." });
+    }
+    finally {
+      setLoadingPopup(false); // Hide loading popup
     }
  
   };
@@ -549,6 +565,8 @@ const pieChartData = {
             </div>
           </div>
         )}
+
+    {loadingPopup && <div className="loading-popup">Loading...</div>}
        
     
       
