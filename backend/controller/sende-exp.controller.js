@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
   secure: true,
   auth: {
     user: 'webproject2026@gmail.com',
-    pass: 'ogws glsi ghgc ospm', // Replace this with an environment variable in production
+    pass: 'ftje ocbc ouff jrip', // Replace this with an environment variable in production
   },
 });
 

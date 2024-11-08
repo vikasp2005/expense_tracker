@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   secureConnection : true,
   auth: {
     user: 'webproject2026@gmail.com',
-    pass: 'ogws glsi ghgc ospm',
+    pass: 'ftje ocbc ouff jrip',
   },
 });
 
